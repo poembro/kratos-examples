@@ -27,8 +27,8 @@ func initApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	articleRepo := data.NewArticleRepo(dataData, logger)
 	articleUsecase := biz.NewArticleUsecase(articleRepo, logger)
 	blogService := service.NewBlogService(articleUsecase, logger)
-	httpServer := server.NewHTTPServer(confServer, logger, blogService)
-	grpcServer := server.NewGRPCServer(confServer, logger, blogService)
+	httpServer := server.NewHTTPServer(confServer, logger, blogService, articleUsecase)
+	grpcServer := server.NewGRPCServer(confServer, logger, blogService, articleUsecase)
 	app := newApp(logger, httpServer, grpcServer)
 	return app, func() {
 		cleanup()

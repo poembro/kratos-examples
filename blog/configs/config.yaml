@@ -10,9 +10,9 @@ server:
 data:
   database:
     driver: mysql
-    source: root:password@tcp(127.0.0.1:3306)/testdb?parseTime=True
+    source: root:NOjyVFBqlCvhWM@tcp(10.0.41.145:3306)/test?parseTime=True
   redis:
-    addr: 127.0.0.1:6379
+    addr: 10.0.41.145:6379
     dial_timeout: 1s
     read_timeout: 0.4s
     write_timeout: 0.6s

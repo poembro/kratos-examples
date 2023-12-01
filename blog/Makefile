@@ -1,9 +1,11 @@
 GOPATH:=$(shell go env GOPATH)
 VERSION=$(shell git describe --tags --always)
-INTERNAL_PROTO_FILES=$(shell find internal -name *.proto)
-API_PROTO_FILES=$(shell find api -name *.proto)
 KRATOS_VERSION=$(shell go mod graph |grep go-kratos/kratos/v2 |head -n 1 |awk -F '@' '{print $$2}')
 KRATOS=$(GOPATH)/pkg/mod/github.com/go-kratos/kratos/v2@$(KRATOS_VERSION)
+
+PROTO_FILES=$(shell find ./api ! -path "./api/third_party*" -name "*.proto")
+PROTO_FILES_CHW=$(shell find ./api/blog/v1 -name "*.proto") 
+
 
 .PHONY: init
 # init env
@@ -14,50 +16,49 @@ init:
 	go get -u github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v2
 	go get -u github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
 	go get -u github.com/google/wire/cmd/wire
+	go get -u github.com/srikrsna/protoc-gen-gotag
 
-.PHONY: grpc
-# generate grpc code
-grpc:
-	protoc --proto_path=. \
-           --proto_path=$(KRATOS)/third_party \
-           --go_out=paths=source_relative:. \
-           --go-grpc_out=paths=source_relative:. \
-           $(API_PROTO_FILES)
-
-.PHONY: http
-# generate http code
-http:
-	protoc --proto_path=. \
-           --proto_path=$(KRATOS)/third_party \
-           --go_out=paths=source_relative:. \
-           --go-http_out=paths=source_relative:. \
-           $(API_PROTO_FILES)
-
-.PHONY: errors
-# generate errors code
-errors:
-	protoc --proto_path=. \
-           --proto_path=$(KRATOS)/third_party \
-           --go_out=paths=source_relative:. \
-           --go-errors_out=paths=source_relative:. \
-           $(API_PROTO_FILES)
 
 .PHONY: proto
+
 # generate internal proto
 proto:
-	protoc --proto_path=. \
-           --proto_path=$(KRATOS)/third_party \
-           --go_out=paths=source_relative:. \
-           $(INTERNAL_PROTO_FILES)
+	protoc --proto_path=./ \
+	--proto_path=./api/third_party \
+	--go_out=paths=source_relative:. \
+	--go-grpc_out=paths=source_relative:. \
+	--go-http_out=paths=source_relative:. \
+	--go-errors_out=paths=source_relative:. \
+	--openapiv2_out ./ \
+    --openapiv2_opt logtostderr=true \
+    --openapiv2_opt json_names_for_fields=false \
+    --openapiv2_opt enums_as_ints=true \
+    $(PROTO_FILES)  \
+    && protoc --proto_path=./ \
+    --proto_path=./api/third_party \
+    --gotag_out=paths=source_relative:. \
+    $(PROTO_FILES)
 
-.PHONY: swagger
-# generate swagger file
-swagger:
-	protoc --proto_path=. \
-		--proto_path=$(KRATOS)/third_party \
-		--openapiv2_out . \
-		--openapiv2_opt logtostderr=true \
-		$(API_PROTO_FILES)
+
+.PHONY: proto-chw
+# generate proto
+proto-chw:
+	protoc --proto_path=./ \
+	--proto_path=./api/third_party \
+	--go_out=paths=source_relative:. \
+	--go-grpc_out=paths=source_relative:. \
+	--go-http_out=paths=source_relative:. \
+	--go-errors_out=paths=source_relative:. \
+	--openapiv2_out ./ \
+    --openapiv2_opt logtostderr=true \
+    --openapiv2_opt json_names_for_fields=false \
+    --openapiv2_opt enums_as_ints=true \
+    $(PROTO_FILES_CHW) \
+    && protoc --proto_path=./ \
+    --proto_path=./api/third_party \
+    --gotag_out=paths=source_relative:. \
+    $(PROTO_FILES_CHW)
+
 		
 .PHONY: generate
 # generate client code

@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package common.v1;
+
+import "google/protobuf/any.proto";
+ 
+option go_package = "github.com/go-kratos/examples/blog/api/common/v1;v1";
+option java_multiple_files = true;
+
+// 空对象
+message Empty {}
+
+// http标准相应格式
+message HttpResponse {
+  int32 code = 1;
+  string message = 2;
+  bool success = 3;
+  google.protobuf.Any data = 4;
+}
+
+// 分页请求
+message PageRequest {
+  // 页码
+  int32 page = 1;
+  // 每页数量
+  int32 limit = 2;
+  // 偏移量
+  int32 offset = 3;
+}
+ 

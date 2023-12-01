@@ -1,0 +1,213 @@
+syntax = "proto3";
+
+package blog.v1;
+
+import "api/common/v1/common.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option go_package = "github.com/go-kratos/examples/blog/api/blog/v1;v1";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    version: "1.0";
+    title: "任务模块-接口文档";
+    description: "任务模块文档";
+    contact: {
+        name: "易起游saas 易镜项目";
+        url: "https://gitlab.stnts.com/shangyecelue/yiqiyoo";
+        email: "luoyuxiang2193@shengtian.com";
+    }; 
+  },
+  security_definitions: {
+    security: {
+      key: "jwt",
+      value: {
+        type: TYPE_API_KEY,
+        in: IN_HEADER,
+        name: "Authorization",
+        flow: FLOW_IMPLICIT,
+        description: "授权token"
+      }
+    }
+  },
+};
+
+service TaskGrpcService{
+  rpc ListDayTask (ListDayTaskRequest) returns (ListDayTaskReply) {
+    option (google.api.http) = {
+        get: "/v1/task/day/list"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags:["每日任务模块"]
+        summary:"每日任务详情",
+        description:"每日任务详情"
+        security: {
+            security_requirement: {
+            key: "jwt"
+            }
+        }
+    };
+  }
+
+  rpc PushDayTask (PushDayTaskRequest) returns (common.v1.Empty) {
+    option (google.api.http) = {
+        post: "/v1/task/day/push"
+        body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags:["每日任务模块"]
+        summary:"每日任务上报",
+        description:"每日任务上报"
+        security: {
+            security_requirement: {
+              key: "jwt"
+            }
+        }
+    };
+  }
+
+  rpc RecvDayTask (RecvDayTaskRequest) returns (common.v1.Empty) {
+    option (google.api.http) = {
+        post: "/v1/task/day/recv"
+        body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags:["每日任务模块"]
+        summary:"每日任务领取",
+        description:"每日任务领取"
+        security: {
+            security_requirement: {
+              key: "jwt"
+            }
+        }
+    };
+  }
+
+  rpc ListMasterTask (ListMasterTaskRequest) returns (ListMasterTaskReply) {
+    option (google.api.http) = {
+      get: "/v1/task/master/list"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags:["主线任务模块"]
+      summary:"主线任务详情",
+      description:"主线任务详情"
+      security: {
+        security_requirement: {
+          key: "jwt"
+        }
+      }
+    };
+  }
+
+  rpc PushMasterTask (PushMasterTaskRequest) returns (common.v1.Empty) {
+    option (google.api.http) = {
+        post: "/v1/task/master/push"
+        body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags:["主线任务模块"]
+        summary:"主线任务上报",
+        description:"主线任务上报"
+        security: {
+            security_requirement: {
+              key: "jwt"
+            }
+        }
+    };
+  }
+}
+
+
+message ListDayTaskRequest { 
+}
+
+message ListDayTaskReply { 
+  int32 active_val  = 1; // 用户当前活跃值
+  repeated DayTask day_task_active_list = 2; // 活跃值任务类型列表
+  repeated DayTaskRecord day_task_active_total_state = 3; // 活跃值任务类型完成情况
+    
+  repeated DayTask day_task_list = 4; // 普通每日任务类型列表
+  repeated DayTaskRecord day_task_total_state = 5; // 普通每日任务类型完成情况
+
+}
+
+message PushDayTaskRequest { 
+  int64 id = 1;
+}
+message RecvDayTaskRequest { 
+  int64 id = 1;
+}
+
+
+
+// 每日任务
+message DayTask {
+    int64 id = 1;
+    string active_id = 2; 
+    int64 member_id = 3;
+    int64 task_id  = 4;
+    string adddate = 5; 
+    string task_name = 6;
+    int32 condition_num  = 7;
+    int32 type = 8;  // 1 表示 活跃度每日任务  2 表示普通每日任务
+    repeated  Reward rewards = 9; 
+}
+
+// 完成每日任务记录
+message DayTaskRecord {
+  int64 day_task_id = 1; // 每日任务id 对应DayTask结构的id
+  int32 condition  = 2;  // 当前完成了多少次 
+}
+
+
+
+
+
+// 奖励
+message Reward {
+  int64 id = 1; // 奖励物品id
+  string icon = 2; // 奖励图片
+  int32 num  = 3; // 奖励数量
+}
+
+
+
+
+
+
+
+// 主线任务 
+message MasterTask {
+    int64 id = 1;
+    string active_id = 2;  
+    int64 task_id  = 3;
+    string task_name = 4;  
+    int32 condition_num  = 5;  // 需要完成多少次
+    int32 type = 6; // 任务类型
+    string  config = 7;  // 是1个json 字符串 前端按照type值 解析 出不同的结构
+}
+
+message MasterTaskRecord {
+  int64 master_task_id = 1; // 每日任务id 对应MasterTask结构的id
+  int32 condition  = 2;  // 当前完成了多少次 
+}
+
+message ListMasterTaskRequest { 
+}
+
+message ListMasterTaskReply { 
+  repeated MasterTask master_task_total_state = 1; // 主线任务 任务类型 完成情况
+  repeated MasterTaskRecord master_task_list = 2; // 主线任务 任务类型列表
+}
+
+
+message PushMasterTaskRequest { 
+  int64 id = 1;
+}
+
